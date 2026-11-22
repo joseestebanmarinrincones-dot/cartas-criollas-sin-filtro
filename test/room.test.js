@@ -382,6 +382,29 @@ test("valida y usa un mazo personalizado en modo solo mío y mezclado", () => {
   assert.equal(mixRoom.room.phase, "choosing");
 });
 
+test("permite cambiar avatar por emoji o foto y lo refleja en la sala", () => {
+  const { room, host, players } = makeRoom(3);
+  const photo = `data:image/jpeg;base64,${"A".repeat(900)}`;
+
+  room.updateAvatar(host.id, "🦜");
+  assert.equal(room.getPlayer(host.id).avatar, "🦜");
+  room.updateAvatar(host.id, photo);
+  assert.equal(room.getPlayer(host.id).avatar, photo);
+  assert.equal(room.viewFor(host.id).self.avatar, photo);
+  assert.equal(room.viewFor(players[1].id).players.find((player) => player.id === host.id).avatar, photo);
+
+  const message = room.addUserChat(host, "Miradme la cara");
+  assert.equal(message.avatar, "👤", "el chat no debe cargar la foto completa");
+
+  const preferred = room.addPlayer("El Nuevo", "socket-new", "🦥");
+  assert.equal(preferred.avatar, "🦥");
+
+  assert.throws(
+    () => room.updateAvatar(host.id, "data:image/svg+xml;base64,PHN2Zz4="),
+    /avatar no es válido/i
+  );
+});
+
 test("bloquea un mazo propio con muy pocas cartas", () => {
   const { room, host } = makeRoom(3);
   room.updateCustomDeck(host.id, {

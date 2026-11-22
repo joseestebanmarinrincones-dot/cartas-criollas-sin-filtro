@@ -12,6 +12,8 @@ const SCORE_OPTIONS = [3, 5, 7, 10];
 const CUSTOM_CARD_MAX_LENGTH = 180;
 const CUSTOM_WHITE_LIMIT = 300;
 const CUSTOM_BLACK_LIMIT = 200;
+const AVATAR_DATA_MAX_LENGTH = 12_000;
+const AVATAR_DATA_RE = /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
 
 const AVATARS = [
   "🦜", "🦥", "🐆", "🌴", "🧉", "🫓", "🌞", "🦎",
@@ -70,6 +72,21 @@ function cleanChatText(raw) {
 
 function countBlanks(text) {
   return (text.match(/_/g) || []).length;
+}
+
+function isImageAvatar(value) {
+  return (
+    typeof value === "string" &&
+    value.length <= AVATAR_DATA_MAX_LENGTH &&
+    AVATAR_DATA_RE.test(value)
+  );
+}
+
+function isValidAvatar(value) {
+  return (
+    (typeof value === "string" && AVATARS.includes(value)) ||
+    isImageAvatar(value)
+  );
 }
 
 function sanitizeCustomDeck(raw) {
@@ -197,7 +214,7 @@ class Room {
       text: clean,
       playerId: player.id,
       name: player.name,
-      avatar: player.avatar,
+      avatar: isImageAvatar(player.avatar) ? "👤" : player.avatar,
       at: Date.now()
     };
     this.chat.push(message);
@@ -214,7 +231,7 @@ class Room {
     }
   }
 
-  addPlayer(rawName, socketId) {
+  addPlayer(rawName, socketId, preferredAvatar = null) {
     this.ensureLobby();
     const name = cleanName(rawName);
     if (!name) {
@@ -228,10 +245,15 @@ class Room {
       throw new GameError("Ese nombre ya está en la sala. Ponle un apodo, primo.");
     }
 
-    const usedAvatars = new Set(this.players.map((player) => player.avatar));
-    const avatar =
-      AVATARS.find((candidate) => !usedAvatars.has(candidate)) ||
-      AVATARS[crypto.randomInt(AVATARS.length)];
+    const usedAvatars = new Set(
+      this.players
+        .map((player) => player.avatar)
+        .filter((avatar) => !isImageAvatar(avatar))
+    );
+    const avatar = isValidAvatar(preferredAvatar)
+      ? preferredAvatar
+      : AVATARS.find((candidate) => !usedAvatars.has(candidate)) ||
+        AVATARS[crypto.randomInt(AVATARS.length)];
 
     const player = {
       id: randomId("p", 6),
@@ -331,6 +353,19 @@ class Room {
       white: baseWhite + customWhite,
       black: baseBlack + customBlack
     };
+  }
+
+  updateAvatar(playerId, rawAvatar) {
+    const player = this.getPlayer(playerId);
+    if (!player) {
+      throw new GameError("Ese jugador ya no está en la sala.");
+    }
+    if (!isValidAvatar(rawAvatar)) {
+      throw new GameError("Ese avatar no es válido. Usa un emoji o una foto JPG, PNG o WebP.");
+    }
+    player.avatar = rawAvatar;
+    this.touch();
+    return player.avatar;
   }
 
   updateCustomDeck(hostId, rawDeck) {
@@ -979,10 +1014,10 @@ class RoomManager {
     throw new GameError("No se pudo crear la sala. Intenta de nuevo.");
   }
 
-  createRoom(socketId, name) {
+  createRoom(socketId, name, avatar = null) {
     const code = this.generateCode();
     const room = new Room(code);
-    const player = room.addPlayer(name, socketId);
+    const player = room.addPlayer(name, socketId, avatar);
     this.rooms.set(code, room);
     return { room, player };
   }
@@ -1000,9 +1035,9 @@ class RoomManager {
     return room;
   }
 
-  joinRoom(rawCode, name, socketId) {
+  joinRoom(rawCode, name, socketId, avatar = null) {
     const room = this.requireRoom(rawCode);
-    const player = room.addPlayer(name, socketId);
+    const player = room.addPlayer(name, socketId, avatar);
     return { room, player };
   }
 
@@ -1052,6 +1087,7 @@ module.exports = {
   Room,
   RoomManager,
   GameError,
+  AVATARS,
   normalizeRoomCode,
   cleanName,
   isScoreOption,

@@ -225,6 +225,46 @@ function sessionsNonHost(sockets) {
   return sockets.find((socket) => !socket.latestState?.self?.isHost);
 }
 
+test("acepta avatares al entrar y los actualiza por sockets", async (t) => {
+  const host = await connectNew();
+  const guest = await connectNew();
+  t.after(() => {
+    closeClient(host);
+    closeClient(guest);
+  });
+  const photo = `data:image/png;base64,${"A".repeat(900)}`;
+  const created = await emitAck(host, "create_room", {
+    name: "Anfitrión",
+    avatar: "🦜"
+  });
+  assert.equal(created.ok, true, created.error);
+  assert.equal(host.latestState?.self.avatar, "🦜");
+  const joined = await emitAck(guest, "join_room", {
+    name: "La Foto",
+    code: created.code,
+    avatar: photo
+  });
+  assert.equal(joined.ok, true, joined.error);
+  assert.equal(guest.latestState?.self.avatar, photo);
+  await waitFor(
+    () => host.latestState?.players.some((player) => player.avatar === photo),
+    "foto visible para el anfitrión"
+  );
+
+  const updated = await emitAck(guest, "update_avatar", { avatar: "🦥" });
+  assert.equal(updated.ok, true, updated.error);
+  await waitFor(
+    () =>
+      host.latestState?.players.find((player) => player.id === guest.latestState?.selfId)
+        ?.avatar === "🦥",
+    "avatar actualizado"
+  );
+  const invalid = await emitAck(guest, "update_avatar", {
+    avatar: "data:image/svg+xml;base64,PHN2Zz4="
+  });
+  assert.equal(invalid.ok, false);
+});
+
 test("reconecta con token y rechaza tokens inválidos", async (t) => {
   const { sockets, sessionData, code, host } = await createAndJoin(3);
   t.after(() => sockets.forEach(closeClient));

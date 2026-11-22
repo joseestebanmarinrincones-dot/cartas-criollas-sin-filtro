@@ -11,6 +11,12 @@ const SESSION_KEY = "cch_session_v1";
 const NAME_KEY = "cch_name";
 const AGE_KEY = "cch_age_ok";
 const CUSTOM_DECK_KEY = "cch_custom_deck_v1";
+const AVATAR_KEY = "cch_avatar_v1";
+const DEFAULT_AVATARS = [
+  "🦜", "🦥", "🐆", "🌴", "🧉", "🫓", "🌞", "🦎",
+  "🥑", "🌵", "🍍", "⚽", "🎺", "🐊", "🦙", "🌊",
+  "🦀", "🦩"
+];
 const FALLBACK_SCORES = [3, 5, 7, 10];
 const AVATAR_TONES = [
   "#f4d58d",
@@ -41,6 +47,7 @@ const state = {
   selection: [],
   submitting: false,
   scoreOptions: FALLBACK_SCORES.slice(),
+  avatarOptions: DEFAULT_AVATARS.slice(),
   config: null,
   shareBase: window.location.origin,
   chat: {
@@ -164,6 +171,40 @@ function toneFor(seed) {
     hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
   }
   return AVATAR_TONES[hash % AVATAR_TONES.length];
+}
+
+function isImageAvatar(value) {
+  return (
+    typeof value === "string" &&
+    /^data:image\/(?:png|jpeg|webp);base64,/i.test(value)
+  );
+}
+
+function avatarBody(value) {
+  if (isImageAvatar(value)) {
+    return `<img class="avatar-img" src="${esc(value)}" alt="">`;
+  }
+  return esc(value || "👤");
+}
+
+function loadAvatarPreference() {
+  try {
+    const value = localStorage.getItem(AVATAR_KEY);
+    if (!value) return null;
+    if (DEFAULT_AVATARS.includes(value)) return value;
+    if (isImageAvatar(value) && value.length <= 12000) return value;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAvatarPreference(value) {
+  try {
+    if (value) localStorage.setItem(AVATAR_KEY, value);
+  } catch {
+    /* noop */
+  }
 }
 
 function loadSession() {
@@ -506,9 +547,12 @@ async function handleEntrySubmit(event) {
     if (!socket.connected) {
       throw new Error("No hay conexión con el servidor. Espera a que vuelva la señal.");
     }
+    const savedAvatar = loadAvatarPreference();
     const response = await emitAck(
       isJoin ? "join_room" : "create_room",
-      isJoin ? { name, code } : { name }
+      isJoin
+        ? { name, code, avatar: savedAvatar || undefined }
+        : { name, avatar: savedAvatar || undefined }
     );
     updateSessionFromAck(response, name);
     try {
@@ -594,6 +638,9 @@ function initSocket() {
   socket.on("hello", (payload) => {
     if (payload && Array.isArray(payload.scoreOptions) && payload.scoreOptions.length) {
       state.scoreOptions = payload.scoreOptions;
+    }
+    if (payload && Array.isArray(payload.avatarOptions) && payload.avatarOptions.length) {
+      state.avatarOptions = payload.avatarOptions;
     }
   });
 
@@ -856,7 +903,9 @@ function renderLobby() {
 
       return `
         <li class="${classes}">
-          <span class="player-avatar" style="--avatar-bg: ${tone}" aria-hidden="true">${esc(player.avatar)}</span>
+          <span class="player-avatar" style="--avatar-bg: ${tone}" aria-hidden="true">${avatarBody(
+            player.avatar
+          )}</span>
           <div class="player-info">
             <div class="player-name-line">
               <span class="player-name">${esc(player.name)}</span>
@@ -866,13 +915,15 @@ function renderLobby() {
           </div>
           <div class="player-actions">
             ${
-              room.self.isHost && !player.isSelf
-                ? `<button type="button" class="kick-button" data-action="kick-player" data-player-id="${esc(
-                    player.id
-                  )}" title="Expulsar a ${esc(player.name)}" aria-label="Expulsar a ${esc(
-                    player.name
-                  )}">×</button>`
-                : ""
+              player.isSelf
+                ? `<button type="button" class="avatar-edit-button" data-action="open-avatar-editor" title="Cambiar mi avatar" aria-label="Cambiar mi avatar">✎</button>`
+                : room.self.isHost
+                  ? `<button type="button" class="kick-button" data-action="kick-player" data-player-id="${esc(
+                      player.id
+                    )}" title="Expulsar a ${esc(player.name)}" aria-label="Expulsar a ${esc(
+                      player.name
+                    )}">×</button>`
+                  : ""
             }
           </div>
         </li>
@@ -973,26 +1024,26 @@ function renderCustomDeckBox(room) {
         <strong>${modeLabel}</strong>
         <p>${counts}</p>
       </div>
-      ${
+      <button type="button" class="btn btn--ghost btn--small" data-action="open-deck-editor">${
         room.self.isHost
-          ? `<button type="button" class="btn btn--ghost btn--small" data-action="open-deck-editor">${
-              customActive ? "Editar mazo" : "Crear mi mazo"
-            }</button>`
-          : ""
-      }
+          ? customActive
+            ? "Editar mazo"
+            : "Crear mi mazo"
+          : "Armar mi mazo"
+      }</button>
     </div>
     ${
       customActive
         ? `<p class="custom-deck-box__note">${
             room.self.isHost
               ? "Puedes tener un mazo propio guardado en este navegador y reutilizarlo en otra sala."
-              : "El anfitrión armó este mazo. Lo que salga, sale."
+              : "El anfitrión armó este mazo. Arma el tuyo, descárgalo y pásale el archivo."
           }</p>`
         : room.self.isHost
           ? `<p class="custom-deck-box__note">Mete tus propias cartas negras y blancas, o mezcla unas cuantas con las ${formatNumber(
               Number(room.deck?.baseWhite || 0) + Number(room.deck?.baseBlack || 0) || 608
             )} de la casa.</p>`
-          : `<p class="custom-deck-box__note">El anfitrión puede cambiar el mazo antes de empezar.</p>`
+          : `<p class="custom-deck-box__note">El anfitrión puede cambiar el mazo; tú también puedes armar uno y pasarle el archivo.</p>`
     }
   `;
 }
@@ -1108,7 +1159,7 @@ function renderScoreStrip() {
         .join(" · ");
       return `
         <div class="${classes}" title="${esc(status)}" aria-label="${esc(status)}">
-          <span class="score-avatar" style="--avatar-bg: ${tone}" aria-hidden="true">${esc(
+          <span class="score-avatar" style="--avatar-bg: ${tone}" aria-hidden="true">${avatarBody(
             player.avatar
           )}</span>
           <span class="score-name">${esc(player.name)}${player.isSelf ? " (tú)" : ""}</span>
@@ -1408,7 +1459,7 @@ function roundResultHTML(round) {
     <div class="round-result">
       <span class="winner-ribbon">Ganadora</span>
       <div class="winner-banner">
-        <span class="winner-avatar" style="--avatar-bg: ${toneFor(winner.playerId)}" aria-hidden="true">${esc(
+        <span class="winner-avatar" style="--avatar-bg: ${toneFor(winner.playerId)}" aria-hidden="true">${avatarBody(
           winner.avatar
         )}</span>
         <div class="winner-banner__copy">
@@ -1443,7 +1494,7 @@ function gameOverSummaryHTML() {
   return `
     <div class="gameover-summary">
       <div class="gameover-summary__top">
-        <span class="winner-avatar" style="--avatar-bg: ${toneFor(winner.id)}" aria-hidden="true">${esc(
+        <span class="winner-avatar" style="--avatar-bg: ${toneFor(winner.id)}" aria-hidden="true">${avatarBody(
           winner.avatar
         )}</span>
         <div>
@@ -1792,8 +1843,8 @@ function renderChat(forceScroll = false) {
       const tone = toneFor(message.playerId || message.name || "x");
       return `
         <div class="chat-message${self ? " chat-message--self" : ""}">
-          <span class="chat-avatar" style="--avatar-bg: ${tone}" aria-hidden="true">${esc(
-            message.avatar || player?.avatar || "👤"
+          <span class="chat-avatar" style="--avatar-bg: ${tone}" aria-hidden="true">${avatarBody(
+            player?.avatar || message.avatar || "👤"
           )}</span>
           <div class="chat-body">
             <div class="chat-meta">
@@ -2268,12 +2319,200 @@ function updateDeckEditorStats() {
   }
 }
 
+async function imageFileToAvatar(file) {
+  if (!file || !/^image\//i.test(file.type || "")) {
+    throw new Error("Ese archivo no es una imagen.");
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    throw new Error("La foto pesa más de 8 MB. Usa una más liviana.");
+  }
+
+  let source = null;
+  try {
+    source = await createImageBitmap(file);
+  } catch {
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      source = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("No se pudo leer la foto."));
+        image.src = objectUrl;
+      });
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  const sourceWidth = source.width || source.naturalWidth;
+  const sourceHeight = source.height || source.naturalHeight;
+  if (!sourceWidth || !sourceHeight) {
+    throw new Error("No se pudo leer la foto.");
+  }
+
+  const side = Math.min(sourceWidth, sourceHeight);
+  const sourceX = (sourceWidth - side) / 2;
+  const sourceY = (sourceHeight - side) / 2;
+  const size = 80;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("El navegador no pudo procesar la foto.");
+
+  context.fillStyle = "#f3e8d2";
+  context.fillRect(0, 0, size, size);
+  context.drawImage(source, sourceX, sourceY, side, side, 0, 0, size, size);
+  if (typeof source.close === "function") source.close();
+
+  let dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+  if (dataUrl.length > 12000) {
+    dataUrl = canvas.toDataURL("image/jpeg", 0.52);
+  }
+  if (dataUrl.length > 12000) {
+    throw new Error("La foto sigue pesando demasiado. Prueba con una más pequeña.");
+  }
+  return dataUrl;
+}
+
+function openAvatarEditor() {
+  const room = state.room;
+  if (!room) return;
+  const selfPlayer = playerById(state.selfId) || room.self;
+  const currentAvatar = selfPlayer?.avatar || "👤";
+  const options =
+    Array.isArray(state.avatarOptions) && state.avatarOptions.length > 0
+      ? state.avatarOptions
+      : DEFAULT_AVATARS;
+
+  const body = `
+    <p class="modal-intro">
+      Elige un emoji o sube una foto para que tus panas te reconozcan en la mesa, el chat y el marcador.
+      La foto se recorta en círculo y se achica automáticamente.
+    </p>
+    <div class="avatar-editor">
+      <div class="avatar-editor__preview-wrap">
+        <div class="avatar-preview" id="avatarPreview" aria-label="Vista previa de tu avatar">${avatarBody(
+          currentAvatar
+        )}</div>
+        <p>Así te ven los demás.</p>
+      </div>
+      <div class="avatar-editor__content">
+        <p class="micro-label">ELIGE UN EMOJI</p>
+        <div class="avatar-grid" id="avatarGrid">
+          ${options
+            .map(
+              (emoji) => `
+                <button type="button" class="avatar-choice${
+                  emoji === currentAvatar ? " is-current" : ""
+                }" data-avatar-choice="${esc(emoji)}" aria-label="Usar avatar ${esc(
+                  emoji
+                )}" aria-pressed="${emoji === currentAvatar}">${esc(emoji)}</button>
+              `
+            )
+            .join("")}
+        </div>
+        <div class="avatar-upload">
+          <div>
+            <strong>O sube una foto</strong>
+            <p>JPG, PNG o WebP. Se recorta al centro y se achica para que cargue rápido.</p>
+          </div>
+          <label class="btn btn--ghost btn--small" for="avatarFileInput">Elegir foto</label>
+          <input id="avatarFileInput" type="file" accept="image/*" hidden>
+        </div>
+        <p class="form-error" id="avatarError" role="alert" hidden></p>
+      </div>
+    </div>
+    <p class="deck-editor__note">Tu elección se guarda en este navegador y se aplica la próxima vez que entres a una sala.</p>
+  `;
+
+  openModal({
+    eyebrow: "Tu identidad en la mesa",
+    title: "Cambiar avatar",
+    body,
+    kind: "avatar",
+    dismissible: true,
+    actions: [
+      {
+        id: "cancel",
+        label: "Cancelar",
+        className: "btn--ghost",
+        onClick: () => closeModal()
+      }
+    ]
+  });
+
+  const preview = $("#avatarPreview");
+  const errorBox = $("#avatarError");
+  const fileInput = $("#avatarFileInput");
+  const avatarGrid = $("#avatarGrid");
+  let working = false;
+
+  const setError = (message) => {
+    if (!errorBox) return;
+    errorBox.textContent = message || "";
+    errorBox.hidden = !message;
+  };
+
+  const chooseAvatar = async (avatar) => {
+    if (working) return;
+    working = true;
+    setError("");
+    if (preview) preview.innerHTML = avatarBody(avatar);
+    elements.modalRoot
+      .querySelectorAll("[data-avatar-choice]")
+      .forEach((button) => {
+        button.disabled = true;
+      });
+    try {
+      await emitAck("update_avatar", { avatar });
+      saveAvatarPreference(avatar);
+      closeModal();
+      showToast("Avatar actualizado. Ahora sí te van a reconocer.", "success");
+    } catch (error) {
+      setError(error.message);
+      if (preview) preview.innerHTML = avatarBody(currentAvatar);
+    } finally {
+      working = false;
+      if (document.contains(elements.modalRoot)) {
+        elements.modalRoot
+          .querySelectorAll("[data-avatar-choice]")
+          .forEach((button) => {
+            button.disabled = false;
+          });
+      }
+    }
+  };
+
+  avatarGrid?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-avatar-choice]");
+    if (!button) return;
+    void chooseAvatar(button.dataset.avatarChoice);
+  });
+
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    setError("");
+    try {
+      const avatar = await imageFileToAvatar(file);
+      await chooseAvatar(avatar);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      fileInput.value = "";
+    }
+  });
+}
+
 function openDeckEditor() {
   const room = state.room;
-  if (!room || !isHost() || room.phase !== "lobby") return;
+  if (!room || room.phase !== "lobby") return;
 
+  const canApply = isHost();
   const saved = loadSavedCustomDeck();
   const serverDeck =
+    canApply &&
     room.customDeck &&
     (room.customDeck.whiteTexts.length > 0 || room.customDeck.blackTexts.length > 0)
       ? room.customDeck
@@ -2288,8 +2527,11 @@ function openDeckEditor() {
 
   const body = `
     <p class="modal-intro">
-      Arma tu propio mazo para esta mesa. Una carta por línea. En las negras, cada <strong>_</strong> es un hueco:
-      usa uno o dos. Las blancas se insertan en esos huecos.
+      ${
+        canApply
+          ? "Arma tu propio mazo para esta mesa. Una carta por línea. En las negras, cada <strong>_</strong> es un hueco: usa uno o dos. Puedes descargar el mazo y compartir el archivo."
+          : "Arma tu mazo, descárgalo y pásaselo al anfitrión para que lo active. Solo el anfitrión puede poner un mazo en la mesa. Una carta por línea; en las negras, cada <strong>_</strong> es un hueco."
+      }
     </p>
     <div class="deck-editor">
       <div class="deck-modes" role="radiogroup" aria-label="Modo del mazo">
@@ -2331,73 +2573,125 @@ function openDeckEditor() {
       </div>
 
       <div class="deck-editor__bottom">
-        <button type="button" class="text-button" id="deckExampleButton">Cargar un ejemplo</button>
+        <div class="deck-editor__tools">
+          <button type="button" class="text-button" id="deckExampleButton">Cargar un ejemplo</button>
+          <button type="button" class="text-button" id="deckExportButton">Descargar mazo (.json)</button>
+          <button type="button" class="text-button" id="deckImportButton">Cargar mazo (.json)</button>
+          <input id="deckImportInput" type="file" accept=".json,application/json" hidden>
+        </div>
         <span id="deckModeWarning" class="deck-warning"></span>
       </div>
-      <p class="deck-editor__note">Tu mazo se guarda en esta sala y también en este navegador para reutilizarlo. Si el servidor se reinicia, la sala se pierde, pero tu borrador local queda.</p>
+      <p class="deck-editor__note">${
+        canApply
+          ? "El mazo activo queda en esta sala y también en este navegador para reutilizarlo. Si el servidor se reinicia, la sala se pierde, pero tu archivo o borrador local queda."
+          : "Tu borrador queda en este navegador. Descarga el archivo y mándaselo al anfitrión; él decide si lo mezcla o juega solo con tus cartas."
+      }</p>
+      <p class="deck-status" id="deckStatus" hidden></p>
       <p class="form-error" id="deckError" role="alert" hidden></p>
     </div>
   `;
 
+  const actions = [
+    {
+      id: "cancel",
+      label: "Cancelar",
+      className: "btn--ghost",
+      onClick: () => closeModal()
+    }
+  ];
+
+  if (canApply) {
+    actions.push({
+      id: "save-deck",
+      label: "Guardar mazo",
+      className: "btn--primary",
+      onClick: async () => {
+        const deck = deckFromEditor();
+        const error = validateDeckDraft(deck);
+        const errorBox = $("#deckError");
+        if (error) {
+          if (errorBox) {
+            errorBox.textContent = error;
+            errorBox.hidden = false;
+          }
+          return;
+        }
+
+        try {
+          const response = await emitAck("update_custom_deck", deck);
+          saveSavedCustomDeck(deck);
+          closeModal();
+          showToast(
+            deck.whiteTexts.length + deck.blackTexts.length > 0
+              ? `Mazo guardado: ${deck.blackTexts.length} negras y ${deck.whiteTexts.length} blancas.`
+              : "Mazo personalizado borrado. Vuelve el mazo de la casa.",
+            "success"
+          );
+          return response;
+        } catch (saveError) {
+          if (errorBox) {
+            errorBox.textContent = saveError.message;
+            errorBox.hidden = false;
+          }
+        }
+      }
+    });
+  } else {
+    actions.push({
+      id: "save-draft",
+      label: "Guardar borrador",
+      className: "btn--primary",
+      onClick: () => {
+        const deck = deckFromEditor();
+        const error = validateDeckDraft(deck);
+        const errorBox = $("#deckError");
+        if (error) {
+          if (errorBox) {
+            errorBox.textContent = error;
+            errorBox.hidden = false;
+          }
+          return;
+        }
+        saveSavedCustomDeck(deck);
+        closeModal();
+        showToast("Borrador guardado. Descarga el .json y pásaselo al anfitrión.", "success");
+      }
+    });
+  }
+
   openModal({
     eyebrow: "Mazo personalizado",
-    title: "Tus cartas, tus reglas",
+    title: canApply ? "Tus cartas, tus reglas" : "Arma tu mazo",
     body,
     className: "modal-card--wide modal-card--deck",
     kind: "deck",
     dismissible: true,
-    actions: [
-      {
-        id: "cancel",
-        label: "Cancelar",
-        className: "btn--ghost",
-        onClick: () => closeModal()
-      },
-      {
-        id: "save-deck",
-        label: "Guardar mazo",
-        className: "btn--primary",
-        onClick: async () => {
-          const deck = deckFromEditor();
-          const error = validateDeckDraft(deck);
-          const errorBox = $("#deckError");
-          if (error) {
-            if (errorBox) {
-              errorBox.textContent = error;
-              errorBox.hidden = false;
-            }
-            return;
-          }
-
-          try {
-            const response = await emitAck("update_custom_deck", deck);
-            saveSavedCustomDeck(deck);
-            closeModal();
-            showToast(
-              deck.whiteTexts.length + deck.blackTexts.length > 0
-                ? `Mazo guardado: ${deck.blackTexts.length} negras y ${deck.whiteTexts.length} blancas.`
-                : "Mazo personalizado borrado. Vuelve el mazo de la casa.",
-              "success"
-            );
-            return response;
-          } catch (saveError) {
-            if (errorBox) {
-              errorBox.textContent = saveError.message;
-              errorBox.hidden = false;
-            }
-          }
-        }
-      }
-    ]
+    actions
   });
 
   const blackInput = $("#deckBlackInput");
   const whiteInput = $("#deckWhiteInput");
   const exampleButton = $("#deckExampleButton");
+  const exportButton = $("#deckExportButton");
+  const importButton = $("#deckImportButton");
+  const importInput = $("#deckImportInput");
   const errorBox = $("#deckError");
+  const statusBox = $("#deckStatus");
+
+  const setError = (message) => {
+    if (!errorBox) return;
+    errorBox.textContent = message || "";
+    errorBox.hidden = !message;
+  };
+  const setStatus = (message, isError = false) => {
+    if (!statusBox) return;
+    statusBox.textContent = message || "";
+    statusBox.hidden = !message;
+    statusBox.classList.toggle("is-error", isError);
+  };
 
   const onInput = () => {
-    if (errorBox) errorBox.hidden = true;
+    setError("");
     updateDeckEditorStats();
   };
   blackInput?.addEventListener("input", onInput);
@@ -2406,7 +2700,7 @@ function openDeckEditor() {
     .querySelectorAll('input[name="deckMode"]')
     .forEach((input) => input.addEventListener("change", onInput));
 
-  exampleButton?.addEventListener("click", () => {
+  const fillExample = () => {
     if (blackInput && !blackInput.value.trim()) {
       blackInput.value = [
         "El escándalo estalló cuando el ministro confesó _.",
@@ -2429,6 +2723,70 @@ function openDeckEditor() {
       ].join("\n");
     }
     onInput();
+  };
+  exampleButton?.addEventListener("click", fillExample);
+
+  exportButton?.addEventListener("click", () => {
+    const deck = deckFromEditor();
+    const payload = {
+      app: "cartas-criollas",
+      version: 1,
+      ...deck,
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "mazo-cartas-criollas.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setStatus("Mazo descargado. Compártelo para que otro lo cargue.");
+  });
+
+  importButton?.addEventListener("click", () => {
+    importInput?.click();
+  });
+
+  importInput?.addEventListener("change", async () => {
+    const file = importInput.files && importInput.files[0];
+    if (!file) return;
+    setError("");
+    setStatus("");
+    try {
+      if (file.size > 800_000) {
+        throw new Error("El archivo es demasiado grande para ser un mazo.");
+      }
+      const parsed = JSON.parse(await file.text());
+      const whiteTexts = parsed.whiteTexts ?? parsed.white ?? parsed.whites;
+      const blackTexts = parsed.blackTexts ?? parsed.black ?? parsed.blacks;
+      if (!Array.isArray(whiteTexts) || !Array.isArray(blackTexts)) {
+        throw new Error("El archivo no tiene listas válidas de cartas blancas y negras.");
+      }
+      if (!whiteTexts.every((value) => typeof value === "string") || !blackTexts.every((value) => typeof value === "string")) {
+        throw new Error("Todas las cartas del archivo deben ser texto.");
+      }
+      blackInput.value = blackTexts.join("\n");
+      whiteInput.value = whiteTexts.join("\n");
+      const importedMode = parsed.mode === "only" ? "only" : "mix";
+      elements.modalRoot
+        .querySelectorAll('input[name="deckMode"]')
+        .forEach((input) => {
+          input.checked = input.value === importedMode;
+        });
+      onInput();
+      setStatus(
+        `Mazo cargado: ${blackTexts.length} negras y ${whiteTexts.length} blancas. Revisa y ${canApply ? "guarda" : "guarda el borrador"}.`
+      );
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      importInput.value = "";
+    }
   });
 
   updateDeckEditorStats();
@@ -2480,10 +2838,15 @@ function openGameMenu() {
       closeModal({ silent: true });
       await leaveRoomFlow();
     },
+    avatar: () => {
+      closeModal({ silent: true });
+      openAvatarEditor();
+    },
     close: () => closeModal()
   };
 
   let items = [
+    menuItemHTML("avatar", "📷", "Cambiar mi avatar", "Sube una foto o elige un emoji para que te reconozcan."),
     menuItemHTML("copy-link", "🔗", "Copiar link de invitación", "Para los que todavía no entraron."),
     menuItemHTML("whatsapp", "💬", "Compartir por WhatsApp", "Al grupo donde nadie lee, pero todos responden."),
     menuItemHTML("rules", "📖", "Cómo se juega", "Un repaso rápido a las reglas.")
@@ -2597,7 +2960,7 @@ function gameOverBodyHTML() {
             (player, index) => `
               <li class="final-row">
                 <span class="final-rank">${index + 1}</span>
-                <span aria-hidden="true">${esc(player.avatar)}</span>
+                <span class="final-avatar" aria-hidden="true">${avatarBody(player.avatar)}</span>
                 <span class="final-name">${esc(player.name)}${player.isSelf ? " (tú)" : ""}</span>
                 <span class="final-score">${player.score} pts</span>
               </li>
@@ -2989,6 +3352,9 @@ async function handleAction(action, trigger) {
       break;
     case "open-deck-editor":
       openDeckEditor();
+      break;
+    case "open-avatar-editor":
+      openAvatarEditor();
       break;
     case "open-results":
       openGameOverModal({ auto: false });

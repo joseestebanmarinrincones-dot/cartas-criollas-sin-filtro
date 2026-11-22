@@ -8,6 +8,7 @@ const { Server } = require("socket.io");
 const {
   RoomManager,
   GameError,
+  AVATARS,
   normalizeRoomCode,
   SCORE_OPTIONS
 } = require("./src/room");
@@ -169,6 +170,7 @@ function createGameServer() {
     socket.emit("hello", {
       ok: true,
       scoreOptions: SCORE_OPTIONS,
+      avatarOptions: AVATARS,
       serverTime: Date.now()
     });
 
@@ -178,7 +180,8 @@ function createGameServer() {
           throw new GameError("Ya estás en una sala. Sal de esa primero.");
         }
         const name = payload && payload.name;
-        const { room, player } = manager.createRoom(socket.id, name);
+        const avatar = payload && payload.avatar;
+        const { room, player } = manager.createRoom(socket.id, name, avatar);
         bindSocket(socket, room, player);
         broadcastRoom(room);
         return {
@@ -201,7 +204,8 @@ function createGameServer() {
         const { room, player } = manager.joinRoom(
           code,
           payload && payload.name,
-          socket.id
+          socket.id,
+          payload && payload.avatar
         );
         bindSocket(socket, room, player);
         broadcastRoom(room);
@@ -238,6 +242,15 @@ function createGameServer() {
       respond(socket, callback, () => {
         const { room, player } = getBound(socket);
         room.updateSettings(player.id, payload || {});
+        broadcastRoom(room);
+        return {};
+      });
+    });
+
+    socket.on("update_avatar", (payload, callback) => {
+      respond(socket, callback, () => {
+        const { room, player } = getBound(socket);
+        room.updateAvatar(player.id, payload && payload.avatar);
         broadcastRoom(room);
         return {};
       });

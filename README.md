@@ -13,7 +13,8 @@ El juego de cartas irreverente con sabor a Venezuela y Sudamérica. Crea una sal
 - El flujo clásico de *Cards Against Humanity*: mano de 10 cartas blancas, juez rotativo, respuestas anónimas, un punto por ronda y primera persona en llegar a la meta.
 - **Cartas negras con uno o dos huecos**: si la pregunta pide dos respuestas, eliges dos.
 - **608 cartas originales**: 203 negras y 405 blancas. El mazo fue depurado: fuera las cartas de nevera, adentro corrupción, religión, herencias, sexo adulto, crimen, funerales, traiciones y humor bastante más ácido. También incluye modismos de oriente y Maracaibo: naguará, qué molleja, vai, cobres, enenante, purito, hecho molleja, primo y compañía.
-- **Mazo personalizado**: el anfitrión puede pegar sus propias cartas negras y blancas, elegir jugar solo con ellas o mezclarlas con el mazo de la casa, y reutilizar el último mazo guardado en el navegador.
+- **Mazo personalizado**: el anfitrión puede pegar sus propias cartas negras y blancas, elegir jugar solo con ellas o mezclarlas con el mazo de la casa, descargar el mazo como `.json` y cargar archivos de otros jugadores.
+- **Avatares personalizados**: cada jugador puede elegir un emoji o subir una foto para que lo reconozcan en la mesa, el marcador y el chat. La foto se recorta y se achica automáticamente.
 - **Texto adaptativo**: las cartas y el chat aumentan de tamaño automáticamente en celulares y pantallas táctiles; en escritorio se mantiene una lectura cómoda.
 - **Chat de sala** para el bochinche, la conspiración y el “yo no fui”.
 - **Reconexión automática**: si se cae el wifi o recargas la página, vuelves a tu puesto y a tu mano.
@@ -81,6 +82,17 @@ En el lobby, el anfitrión tiene un bloque llamado **Mazo de la mesa**:
 El modo **Solo mi mazo** exige al menos 10 cartas blancas por jugador y una negra. Si faltan, el botón de comenzar se bloquea y te dice cuántas faltan. El editor permite máximo 300 blancas y 200 negras; cada carta hasta 180 caracteres.
 
 El mazo oficial evita racismo, xenofobia y burlas a víctimas reales. El editor es tuyo: lo que cargues y compartas corre por tu cuenta.
+
+En el editor también puedes **Descargar mazo (.json)** y **Cargar mazo (.json)**. Cualquier jugador puede abrir su editor local, armar un mazo, descargarlo y mandarle el archivo al anfitrión; el anfitrión lo carga y decide si lo usa solo o lo mezcla con el de la casa.
+
+### Cambiar avatar
+
+Cada jugador puede personalizar su avatar:
+
+- En el lobby, pulsa el lápiz junto a tu nombre.
+- Durante la partida, abre el menú y elige **Cambiar mi avatar**.
+- Puedes escoger un emoji o subir una foto JPG, PNG o WebP. La imagen se recorta en círculo y se achica para que no pese.
+- La elección se guarda en el navegador y se aplica en las próximas salas.
 
 ---
 
