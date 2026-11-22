@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15231c">
+  <meta name="color-scheme" content="light">
+  <title>Cartas Contra la Humanidad: Edición Criolla Sin Filtro</title>
+  <meta name="description" content="El juego de cartas irreverente con sabor a Venezuela, oriente y Maracaibo. Crea tu sala o tu propio mazo y arruina la amistad. 3 a 12 jugadores. +18.">
+  <meta property="og:title" content="Cartas Contra la Humanidad: Edición Criolla Sin Filtro">
+  <meta property="og:description" content="Preguntas funables, respuestas peores y modismos de oriente y Zulia. Crea tu mazo y juega con tus panas.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_VE">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <div class="page-atmosphere" aria-hidden="true">
+    <span class="atmosphere-blob atmosphere-blob--one"></span>
+    <span class="atmosphere-blob atmosphere-blob--two"></span>
+    <span class="atmosphere-blob atmosphere-blob--three"></span>
+    <span class="atmosphere-grain"></span>
+  </div>
+
+  <div id="app">
+    <!-- ================= LANDING ================= -->
+    <section class="screen landing-screen" id="landingScreen">
+      <header class="landing-header container">
+        <a href="/" class="brand" aria-label="Cartas Contra la Humanidad, inicio">
+          <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+            <g class="brand__rays" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+              <path d="M32 2v8M32 54v8M2 32h8M54 32h8M10.8 10.8l5.7 5.7M47.5 47.5l5.7 5.7M53.2 10.8l-5.7 5.7M16.5 47.5l-5.7 5.7"/>
+            </g>
+            <circle cx="32" cy="32" r="18" fill="#f4b942" stroke="#15231c" stroke-width="3.2"/>
+            <circle cx="26.2" cy="28.5" r="2.1" fill="#15231c"/>
+            <circle cx="37.8" cy="28.5" r="2.1" fill="#15231c"/>
+            <path d="M25.5 36.2c3.6 3.2 9.4 3.2 13 0" fill="none" stroke="#15231c" stroke-width="2.8" stroke-linecap="round"/>
+          </svg>
+          <span class="brand__text">
+            <span class="brand__name">Cartas Contra la Humanidad</span>
+            <span class="brand__edition">Edición Criolla · Sin Filtro</span>
+          </span>
+        </a>
+        <div class="landing-header__actions">
+          <span class="age-stamp" title="Contenido para adultos">+18</span>
+          <button class="text-button" type="button" data-action="open-rules">Cómo se juega</button>
+        </div>
+      </header>
+
+      <main class="landing-main container" id="main">
+        <div class="landing-copy">
+          <p class="eyebrow"><span class="eyebrow__dot"></span> Humor negro. Sabor de oriente y Zulia. Cero ética.</p>
+          <h1 class="landing-title">
+            Arruina la <span class="marker marker--sun">reunión</span>.<br>
+            Con sabor a <span class="arepa-word">arepa</span>.
+          </h1>
+          <p class="landing-lede">
+            Rellena las preguntas más funables con las respuestas más vergonzosas.
+            El juez elige la peor. Todos pierden un poco de dignidad.
+            Con naguará, qué molleja y una que otra vaina de oriente y Maracaibo.
+          </p>
+
+          <div class="feature-row" aria-label="Datos del juego">
+            <span class="feature-chip">👥 3–12 panas</span>
+            <span class="feature-chip">⏱ 15–40 min</span>
+            <span class="feature-chip">🃏 <strong id="landingCardCount">608</strong> cartas</span>
+          </div>
+
+          <div class="sample-deck" aria-hidden="true">
+            <article class="sample-card sample-card--black">
+              <span class="sample-card__tag">PREGUNTA</span>
+              <p>Lo único que falta para arreglar el país es <span class="sample-blank"></span>.</p>
+            </article>
+            <article class="sample-card sample-card--white">
+              <p>Un ministro con dos sueldos y tres esposas.</p>
+            </article>
+            <span class="starburst">SIN<br>FILTRO</span>
+          </div>
+
+          <p class="landing-disclaimer">
+            Fan game no oficial. Contenido satírico para adultos.
+            Si te ofendes, probablemente el juego está haciendo su trabajo.
+          </p>
+        </div>
+
+        <div class="entry-column">
+          <div class="entry-card">
+            <div class="entry-card__top">
+              <span class="entry-card__sticker">¿Te atreves?</span>
+              <div class="entry-tabs" role="tablist" aria-label="Crear o unirse a una sala">
+                <button type="button" class="entry-tab is-active" data-entry-tab="create" role="tab" aria-selected="true">Crear sala</button>
+                <button type="button" class="entry-tab" data-entry-tab="join" role="tab" aria-selected="false">Unirse</button>
+              </div>
+            </div>
+
+            <form id="entryForm" class="entry-form" novalidate>
+              <div class="field">
+                <label for="nickname">Tu nombre o tu peor alias</label>
+                <input id="nickname" name="nickname" type="text" maxlength="18" autocomplete="nickname" placeholder="Ej: El Caimán" required>
+              </div>
+
+              <div class="field" id="joinCodeField" hidden>
+                <label for="roomCode">Código de la sala</label>
+                <input id="roomCode" name="roomCode" class="code-input" type="text" maxlength="5" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ABC12" aria-describedby="codeHelp">
+                <small id="codeHelp">Cinco letras y números. Te los pasa quien creó la sala.</small>
+              </div>
+
+              <label class="age-check" for="ageCheck">
+                <input id="ageCheck" type="checkbox">
+                <span>Confirmo que tengo 18 años o más y que el humor negro no me ofende. <em>En serio.</em></span>
+              </label>
+
+              <p class="form-error" id="entryError" role="alert" hidden></p>
+
+              <button class="btn btn--primary btn--wide btn--entry" type="submit" id="entrySubmit">
+                <span id="entrySubmitLabel">Crear sala</span>
+                <span aria-hidden="true">→</span>
+              </button>
+
+              <p class="form-hint" id="entryHint">Tú creas el código. Tus panas entran con él.</p>
+            </form>
+
+            <div class="invite-note" id="inviteHint" hidden>
+              <span class="invite-note__icon" aria-hidden="true">✉</span>
+              <p>Te invitaron a la sala <strong id="inviteCode">—</strong>. Ponle nombre y entra.</p>
+            </div>
+
+            <div class="entry-card__footer">
+              <span>Sin descargas.</span>
+              <span>Cada quien juega desde su teléfono.</span>
+            </div>
+          </div>
+
+          <div class="local-note" id="localNote" hidden>
+            <strong>Estás en localhost.</strong>
+            El link para compartir usará tu IP de red local. Para jugar fuera de casa, mira el README.
+          </div>
+        </div>
+      </main>
+
+      <footer class="landing-footer container">
+        <p>Fan game no oficial inspirado en Cards Against Humanity. Cartas originales de sátira social. Ningún político, pastor ni suegra fue consultado.</p>
+        <p>Hecho con harina PAN, mala leche y un poquito de odio.</p>
+      </footer>
+    </section>
+
+    <!-- ================= LOBBY ================= -->
+    <section class="screen app-screen" id="lobbyScreen" hidden>
+      <header class="app-header">
+        <div class="container app-header__inner">
+          <a href="/" class="brand brand--compact" aria-label="Inicio">
+            <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g class="brand__rays" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+                <path d="M32 2v8M32 54v8M2 32h8M54 32h8M10.8 10.8l5.7 5.7M47.5 47.5l5.7 5.7M53.2 10.8l-5.7 5.7M16.5 47.5l-5.7 5.7"/>
+              </g>
+              <circle cx="32" cy="32" r="18" fill="#f4b942" stroke="#15231c" stroke-width="3.2"/>
+              <circle cx="26.2" cy="28.5" r="2.1" fill="#15231c"/>
+              <circle cx="37.8" cy="28.5" r="2.1" fill="#15231c"/>
+              <path d="M25.5 36.2c3.6 3.2 9.4 3.2 13 0" fill="none" stroke="#15231c" stroke-width="2.8" stroke-linecap="round"/>
+            </svg>
+            <span class="brand__text">
+              <span class="brand__name">Cartas Contra la Humanidad</span>
+              <span class="brand__edition">Edición Criolla · Sin Filtro</span>
+            </span>
+          </a>
+          <span class="header-scene-tag">Sala de espera</span>
+          <div class="header-actions">
+            <button type="button" class="header-button" data-action="open-chat" aria-label="Abrir chat">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 4v-15Z"/></svg>
+              <span>Chat</span>
+              <em class="chat-badge" id="lobbyChatBadge" hidden>0</em>
+            </button>
+            <button type="button" class="header-button header-button--quiet" data-action="open-rules">Reglas</button>
+            <button type="button" class="header-button header-button--danger" data-action="leave-room">Salir</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="container lobby-main">
+        <div class="lobby-heading">
+          <div class="lobby-heading__copy">
+            <p class="eyebrow"><span class="eyebrow__dot"></span> Pasan, hay puesto</p>
+            <h1>La previa está <span class="marker marker--coral">que arde</span>.</h1>
+            <p id="lobbySubtitle">Comparte el código. Cuando estén todos, el anfitrión prende la parranda.</p>
+          </div>
+
+          <section class="room-share-card" aria-label="Compartir sala">
+            <div>
+              <span class="micro-label">CÓDIGO DE LA SALA</span>
+              <strong class="room-code" id="lobbyCodeBig">—</strong>
+            </div>
+            <div class="room-share-card__actions">
+              <button type="button" class="icon-button" data-action="copy-code" title="Copiar código" aria-label="Copiar código">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></svg>
+                <span>Copiar</span>
+              </button>
+              <button type="button" class="btn btn--whatsapp" data-action="share-whatsapp">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.4 2.2 2.3 4.2 4.7 5l1.3-1.2 1.9.8c-.1 1.2-.9 2-2.1 2.2-3.4.6-7.5-3.3-7.4-6.7 0-1.1.7-2 1.9-2.1l.9 1.7L9 8.5Z"/></svg>
+                WhatsApp
+              </button>
+              <button type="button" class="btn btn--ghost btn--small" data-action="copy-link">Copiar link</button>
+            </div>
+          </section>
+        </div>
+
+        <div class="lobby-layout">
+          <section class="paper-panel players-panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Los que van a caer</h2>
+                <p class="panel-subtitle">La amistad se pone a prueba en la primera ronda.</p>
+              </div>
+              <span class="count-pill" id="lobbyPlayerCount">0/12</span>
+            </div>
+            <ul class="player-list" id="lobbyPlayers" aria-live="polite"></ul>
+            <div class="invite-footer">
+              <p><strong>¿Falta gente?</strong> Manden el link al grupo donde nadie habla.</p>
+              <button type="button" class="btn btn--primary" data-action="share-whatsapp">Invitar por WhatsApp</button>
+            </div>
+          </section>
+
+          <aside class="lobby-aside">
+            <section class="paper-panel settings-panel">
+              <div class="panel-heading">
+                <h2>Reglas de la casa</h2>
+                <span class="mini-sticker">CRUEL</span>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-label">
+                  <strong>Primero a</strong>
+                  <span>Puntos para ganar</span>
+                </div>
+                <div class="segmented" id="scoreOptions" role="group" aria-label="Puntos para ganar"></div>
+              </div>
+
+              <dl class="facts">
+                <div><dt>Mazo</dt><dd id="deckFact">— cartas</dd></div>
+                <div><dt>Jugadores</dt><dd>3 a 12</dd></div>
+                <div><dt>Ética</dt><dd>No incluida</dd></div>
+                <div><dt>Juez</dt><dd>Rota cada ronda</dd></div>
+              </dl>
+
+              <div class="custom-deck-box" id="customDeckBox"></div>
+
+              <div class="host-box" id="hostBox" aria-live="polite"></div>
+            </section>
+
+            <section class="paper-panel mini-rules">
+              <h2>Cómo se juega</h2>
+              <ol class="steps">
+                <li><span>1</span>El juez lee una carta negra.</li>
+                <li><span>2</span>Los demás mandan su peor respuesta en secreto.</li>
+                <li><span>3</span>El juez elige la que más le arruina la vida.</li>
+                <li><span>4</span>El ganador suma un punto y pierde un poco de dignidad.</li>
+              </ol>
+              <p class="rules-footnote">Si la carta pide dos respuestas, eliges dos. Y si te toca ser juez, no juegas: solo juzgas.</p>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </section>
+
+    <!-- ================= GAME ================= -->
+    <section class="screen app-screen game-screen" id="gameScreen" hidden>
+      <header class="app-header app-header--game game-header">
+        <div class="container app-header__inner">
+          <a href="/" class="brand brand--compact brand--game" aria-label="Inicio">
+            <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g class="brand__rays" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+                <path d="M32 2v8M32 54v8M2 32h8M54 32h8M10.8 10.8l5.7 5.7M47.5 47.5l5.7 5.7M53.2 10.8l-5.7 5.7M16.5 47.5l-5.7 5.7"/>
+              </g>
+              <circle cx="32" cy="32" r="18" fill="#f4b942" stroke="#15231c" stroke-width="3.2"/>
+              <circle cx="26.2" cy="28.5" r="2.1" fill="#15231c"/>
+              <circle cx="37.8" cy="28.5" r="2.1" fill="#15231c"/>
+              <path d="M25.5 36.2c3.6 3.2 9.4 3.2 13 0" fill="none" stroke="#15231c" stroke-width="2.8" stroke-linecap="round"/>
+            </svg>
+            <span class="brand__text">
+              <span class="brand__name">Cartas Contra la Humanidad</span>
+              <span class="brand__edition">Edición Criolla · Sin Filtro</span>
+            </span>
+          </a>
+
+          <div class="game-header__room">
+            <span class="room-pill"><span>SALA</span> <strong id="gameCode">—</strong></span>
+            <span class="round-pill">RONDA <strong id="gameRound">1</strong></span>
+          </div>
+
+          <div class="header-actions">
+            <button type="button" class="header-button" data-action="open-chat" aria-label="Abrir chat">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 4v-15Z"/></svg>
+              <span>Chat</span>
+              <em class="chat-badge" id="gameChatBadge" hidden>0</em>
+            </button>
+            <button type="button" class="header-button header-button--quiet" data-action="open-results" id="resultsHeaderButton" hidden>Resultados</button>
+            <button type="button" class="header-button header-button--icon" data-action="open-menu" aria-label="Abrir menú">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+              <span>Menú</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="score-ribbon">
+        <div class="container score-strip" id="scoreStrip" aria-label="Puntajes"></div>
+      </div>
+
+      <main class="container game-main">
+        <div class="game-meta">
+          <div class="judge-meta">
+            <span class="meta-label">JUEZ DE LA RONDA</span>
+            <span id="judgeLabel">—</span>
+          </div>
+          <span class="target-label" id="targetLabel">Primero a 5 puntos</span>
+        </div>
+
+        <section class="table-area" id="tableArea" aria-live="polite"></section>
+        <section class="hand-area" id="handArea" aria-live="polite"></section>
+      </main>
+    </section>
+  </div>
+
+  <div class="mobile-play-action" id="mobilePlayAction" hidden></div>
+
+  <!-- ================= CHAT ================= -->
+  <div class="overlay" id="chatOverlay" data-action="close-chat"></div>
+  <aside class="chat-drawer" id="chatDrawer" aria-labelledby="chatTitle" aria-hidden="true">
+    <header class="chat-drawer__head">
+      <div>
+        <p class="eyebrow">Radio Bemba</p>
+        <h2 id="chatTitle">Bochinche general</h2>
+      </div>
+      <button type="button" class="close-button" data-action="close-chat" aria-label="Cerrar chat">×</button>
+    </header>
+    <div class="chat-messages" id="chatMessages" role="log" aria-live="polite"></div>
+    <form class="chat-form" id="chatForm">
+      <label class="sr-only" for="chatInput">Mensaje</label>
+      <input id="chatInput" name="message" type="text" maxlength="280" autocomplete="off" placeholder="Escribe algo funable…">
+      <button type="submit" class="btn btn--primary btn--chat" id="chatSend">Enviar</button>
+    </form>
+  </aside>
+
+  <!-- ================= GLOBAL UI ================= -->
+  <div class="modal-root" id="modalRoot" hidden></div>
+  <div class="toast-root" id="toastRoot" role="status" aria-live="polite"></div>
+
+  <div class="net-banner" id="netBanner" hidden>
+    <span class="net-banner__dot"></span>
+    <span id="netBannerText">Se cayó la señal. Reconectando…</span>
+  </div>
+
+  <div class="boot-screen" id="bootScreen" hidden>
+    <div class="boot-screen__sun" aria-hidden="true">☀</div>
+    <p>Calentando la arepa…</p>
+  </div>
+
+  <noscript>
+    <div class="noscript">Este juego necesita JavaScript. Sin eso no hay bochinche.</div>
+  </noscript>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+node_modules/
+test-shots/
+screenshots/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+src/.cards-unique.json
+
+tools/
